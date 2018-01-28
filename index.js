@@ -40,7 +40,7 @@ function create_window() {
         slashes: true
     }));
 
-    browser_window.webContents.openDevTools();
+    //browser_window.webContents.openDevTools();
 
     create_menu();
 
@@ -85,7 +85,7 @@ function add_product_window() {
         slashes: true
     }));
 
-    product_window.webContents.openDevTools();
+    //product_window.webContents.openDevTools();
 
     product_window.on('closed', () => {
         product_window = null
