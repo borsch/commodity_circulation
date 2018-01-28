@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/utils/jquery.numeric.js"></script>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+    <script>if (window.module) module = window.module;</script>
+</head>
+<body class="container" style="padding-top: 20px; padding-bottom: 20px;">
+<form id="product_form">
+    <div class="form-group">
+        <label>Код</label>
+        <input name="product_code" data-type="number" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label>Назва</label>
+        <input name="product_name" data-type="text" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label>Одиниці вимірювання</label>
+        <select name="product_unit" class="form-control" required>
+            <option selected disabled>--- вибрати ---</option>
+            <option value="м">м</option>
+            <option>м2</option>
+            <option>м3</option>
+            <option>кг</option>
+            <option>л</option>
+            <option>шт.</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Залишок</label>
+        <input name="product_residual" data-type="number" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label>Ціна закупівельна, грн.</label>
+        <input name="product_purchase_price" data-type="number" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label>Націнка, %</label>
+        <input name="product_markup" data-type="number" class="form-control" required>
+    </div>
+
+    <div class="text-center">
+        <button type="submit" class="btn btn-success">Додати</button>
+    </div>
+</form>
+<script>
+    const { ipcRenderer } = require('electron');
+
+    $('[data-type=number]').numeric({decimal : ".",  negative : false, scale: 3});
+
+    $('#product_form').submit(function(e){
+        e.preventDefault();
+
+        let data = {};
+
+        $(this).find('.form-control').each(function(){
+            let $input = $(this);
+
+            if ($input.data('type') === 'number') {
+                data[$input.attr('name')] = parseFloat(parseFloat($input.val()).toFixed(2));
+            } else {
+                data[$input.attr('name')] = $input.val();
+            }
+        });
+
+        console.log(data);
+
+        ipcRenderer.sendSync('on_add_product', data);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "appId": "ua.com.itv.desktop_client",
+  "win": {
+    "target": "msi"
+  }
+}

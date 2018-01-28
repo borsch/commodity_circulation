@@ -1,0 +1,1 @@
+git checkout prod && git merge master && npm run-script package-win && git checkout master

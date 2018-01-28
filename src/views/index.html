@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+    <script src="../assets/js/jquery.min.js"></script>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+    <script>if (window.module) module = window.module;</script>
+</head>
+<body>
+<div id="main_container">
+    <table class="table table-striped table-bordered table-sm table-hover">
+        <thead>
+        <tr>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">#</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Код</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Назва</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Од. вимірювання</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Залишок</th>
+            <th colspan="3" class="text-center">
+                Ціна/од.
+            </th>
+            <th colspan="2" class="text-center">
+                Сума
+            </th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Прибуток</th>
+        </tr>
+        <tr>
+            <th class="text-center">
+                Закупівельна, грн.
+            </th>
+            <th class="text-center">
+                Націнка, %
+            </th>
+            <th class="text-center">
+                Роздрібна ціна, грн.
+            </th>
+            <th class="text-center">
+                Прихід
+            </th>
+            <th class="text-center">
+                Продаж
+            </th>
+        </tr>
+        </thead>
+        <tbody id="products">
+
+        </tbody>
+    </table>
+</div>
+<script>
+    const { ipcRenderer } = require('electron');
+    const ejs = require('ejs');
+    const config = require('electron-node-config');
+
+    ipcRenderer.on('on_add_product_add', function(event, data){
+        render_product(data);
+    });
+
+    function render_product(product) {
+        product.id = 0;
+
+        load_template('src/views/template/product_row.ejs', product, function($html){
+            $('#products').append($html);
+        });
+    }
+
+    function load_template(path, data, callback) {
+        if (config.get('binary')) {
+            path = 'resources/app.asar/' + path;
+        }
+
+        ejs.renderFile(path, data, {}, (error, html) => {
+            if (error) {
+                throw new Error(error);
+            } else {
+                callback($(html));
+            }
+        });
+    }
+</script>
+</body>
+</html>

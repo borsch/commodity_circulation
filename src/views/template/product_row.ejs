@@ -1,0 +1,14 @@
+<tr>
+    <% var sell_price = product_purchase_price * (1+product_markup / 100); %>
+    <td><%= id %></td>
+    <td><%= product_code %></td>
+    <td><%= product_name %></td>
+    <td><%= product_unit %></td>
+    <td><%= product_residual.toFixed(3) %></td>
+    <td><%= product_purchase_price.toFixed(2) %></td>
+    <td><%= product_markup.toFixed(2) %></td>
+    <td><%= sell_price.toFixed(2) %></td>
+    <td><%= (product_purchase_price * product_residual).toFixed(2) %></td>
+    <td><%= (sell_price * product_residual).toFixed(2) %></td>
+    <td><%= (sell_price * product_residual - product_purchase_price * product_residual).toFixed(2) %></td>
+</tr>
