@@ -12,17 +12,17 @@
 <form id="product_form">
     <div class="form-group">
         <label>Код</label>
-        <input name="product_code" data-type="number" class="form-control" required>
+        <input name="code" data-type="number" class="form-control" required>
     </div>
 
     <div class="form-group">
         <label>Назва</label>
-        <input name="product_name" data-type="text" class="form-control" required>
+        <input name="name" data-type="text" class="form-control" required>
     </div>
 
     <div class="form-group">
         <label>Одиниці вимірювання</label>
-        <select name="product_unit" class="form-control" required>
+        <select name="unit" class="form-control" required>
             <option selected disabled>--- вибрати ---</option>
             <option value="м">м</option>
             <option>м2</option>
@@ -31,21 +31,6 @@
             <option>л</option>
             <option>шт.</option>
         </select>
-    </div>
-
-    <div class="form-group">
-        <label>Залишок</label>
-        <input name="product_residual" data-type="number" class="form-control" required>
-    </div>
-
-    <div class="form-group">
-        <label>Ціна закупівельна, грн.</label>
-        <input name="product_purchase_price" data-type="number" class="form-control" required>
-    </div>
-
-    <div class="form-group">
-        <label>Націнка, %</label>
-        <input name="product_markup" data-type="number" class="form-control" required>
     </div>
 
     <div class="text-center">

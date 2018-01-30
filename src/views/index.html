@@ -12,7 +12,6 @@
     <table class="table table-striped table-bordered table-sm table-hover">
         <thead>
         <tr>
-            <th rowspan="2" class="text-center" style="vertical-align: middle;">#</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Код</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Назва</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Од. вимірювання</th>
@@ -52,15 +51,28 @@
     const { ipcRenderer } = require('electron');
     const ejs = require('ejs');
     const config = require('electron-node-config');
+    const database = require('../assets/js/database');
 
-    ipcRenderer.on('on_add_product_add', function(event, data){
+    database.get_all_products(function(products){
+        products.forEach(function(p){
+            p.residual = 0;
+            p.purchase_price = 0;
+            p.markup = 0;
+
+            render_product(p);
+        });
+    });
+
+    ipcRenderer.on('on_add_product_add_success', function(event, data){
         render_product(data);
     });
 
-    function render_product(product) {
-        product.id = 0;
+    ipcRenderer.on('on_add_product_add_fail', function(){
+        alert('Невдалось додати продукт. Спробуйте ще раз або перевірте зєднання з базою даних та перезапустіть додаток');
+    });
 
-        load_template('src/views/template/product_row.ejs', product, function($html){
+    function render_product(product) {
+        load_template('src/views/template/product_row.ejs', { product: product }, function($html){
             $('#products').append($html);
         });
     }

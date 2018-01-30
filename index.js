@@ -1,8 +1,7 @@
 const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 const url = require('url');
 const path = require('path');
-
-require('./src/assets/js/database');
+const database = require('./src/assets/js/database');
 
 let browser_window;
 let product_window;
@@ -26,7 +25,18 @@ app.on('activate', () => {
 ipcMain.on('on_add_product', function(event, data) {
     product_window.close();
 
-    browser_window.webContents.send('on_add_product_add', data);
+    database.add_product(data, function(product){
+        if (product) {
+            product.residual = 0;
+            product.purchase_price = 0;
+            product.markup = 0;
+
+
+            browser_window.webContents.send('on_add_product_add_success', product);
+        } else {
+            browser_window.webContents.send('on_add_product_add_fail', null);
+        }
+    });
 });
 
 function create_window() {
