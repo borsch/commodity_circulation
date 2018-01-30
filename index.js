@@ -2,6 +2,8 @@ const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 const url = require('url');
 const path = require('path');
 
+require('./src/assets/js/database');
+
 let browser_window;
 let product_window;
 
