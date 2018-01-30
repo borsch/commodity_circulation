@@ -28,3 +28,15 @@ module.exports.get_all_products = function(cb) {
         }
     });
 };
+
+module.exports.get_products_match = function(query, cb) {
+    let regex_expression = { $regex: new RegExp(query, "ig") };
+
+    Product.find({$or: [{ name : regex_expression }, { code : regex_expression }] }, function(err, products) {
+        if (err) {
+            cb && cb([]);
+        } else {
+            cb && cb(products);
+        }
+    });
+};

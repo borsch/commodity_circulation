@@ -5,6 +5,7 @@ const database = require('./src/assets/js/database');
 
 let browser_window;
 let product_window;
+let income_product_window;
 
 app.on('ready', () => {
     create_window();
@@ -54,7 +55,7 @@ function create_window() {
 
     browser_window.webContents.openDevTools();
 
-    create_menu();
+    browser_window.setMenu(create_menu());
 
     browser_window.on('closed', () => {
         browser_window = null
@@ -72,15 +73,37 @@ function create_menu() {
                         if (!product_window)
                             add_product_window();
 
-                        product_window.show();
+                        browser_window.webContents.send('on_menu_product_perspective', {});
+                    }
+                }, {
+                    label: 'Форма приходу товару',
+                    click: function() {
+                        if (!income_product_window)
+                            income_product_window_create();
+
+                        browser_window.webContents.send('on_menu_income_perspective', {});
+                    }
+                }
+            ]
+        }, {
+            label: 'Вигляд',
+            submenu: [
+                {
+                    label: 'Список товарів',
+                    click: function() {
+                        browser_window.webContents.send('on_menu_product_perspective', {});
+                    }
+                }, {
+                    label: 'Прихід',
+                    click: function() {
+                        browser_window.webContents.send('on_menu_income_perspective', {});
                     }
                 }
             ]
         }
     ];
 
-    const menu = Menu.buildFromTemplate(menu_template);
-    Menu.setApplicationMenu(menu);
+    return Menu.buildFromTemplate(menu_template);
 }
 
 function add_product_window() {
@@ -102,4 +125,31 @@ function add_product_window() {
     product_window.on('closed', () => {
         product_window = null
     });
+
+    product_window.show();
+    product_window.setMenu(Menu.buildFromTemplate([]));
+}
+
+function income_product_window_create() {
+    income_product_window = new BrowserWindow({
+        width: 600,
+        height: 700,
+        devTools: true,
+        title: 'Додати товар'
+    });
+
+    income_product_window.loadURL(url.format ({
+        pathname: path.join(__dirname, `src/views/product_income_form.html`),
+        protocol: 'file:',
+        slashes: true
+    }));
+
+    income_product_window.webContents.openDevTools();
+
+    income_product_window.on('closed', () => {
+        income_product_window = null
+    });
+
+    income_product_window.show();
+    income_product_window.setMenu(Menu.buildFromTemplate([]));
 }
