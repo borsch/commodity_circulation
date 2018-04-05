@@ -12,70 +12,71 @@
 
 </div>
 <script>
-    const { ipcRenderer } = require('electron');
-    const ejs = require('ejs');
-    const config = require('electron-node-config');
-    const database = require('../assets/js/database');
+  const { ipcRenderer } = require('electron');
+  const ejs = require('ejs');
+  const config = require('electron-node-config');
+  const database = require('../assets/js/database');
 
+  products_perspective();
+
+  ipcRenderer.on('on_add_product_add_success', function(event, data){
+    render_product(data);
+  });
+
+  ipcRenderer.on('on_add_product_add_fail', function(){
+    alert('Невдалось додати продукт. Спробуйте ще раз або перевірте зєднання з базою даних та перезапустіть додаток');
+  });
+
+  ipcRenderer.on('on_menu_product_perspective', function(){
     products_perspective();
+  });
 
-    ipcRenderer.on('on_add_product_add_success', function(event, data){
-        render_product(data);
-    });
+  ipcRenderer.on('on_menu_income_perspective', function(){
+    income_perspective();
+  });
 
-    ipcRenderer.on('on_add_product_add_fail', function(){
-        alert('Невдалось додати продукт. Спробуйте ще раз або перевірте зєднання з базою даних та перезапустіть додаток');
-    });
+  function products_perspective() {
+    load_template('src/views/template/product_perspective.ejs', { }, function($html){
+      $('#main_container').html($html);
 
-    ipcRenderer.on('on_menu_product_perspective', function(){
-        products_perspective();
-    });
+      database.get_all_products(function(products){
+        products.forEach(function(p){
+          p.residual = p.residual || 0;
+          p.purchase_price = p.purchase_price || 0;
+          p.purchase_price_usd = p.purchase_price_usd || 0;
+          p.sale_price = p.sale_price || 0;
 
-    ipcRenderer.on('on_menu_income_perspective', function(){
-        income_perspective();
-    });
-
-    function products_perspective() {
-        load_template('src/views/template/product_perspective.ejs', { }, function($html){
-            $('#main_container').html($html);
-
-            database.get_all_products(function(products){
-                products.forEach(function(p){
-                    p.residual = 0;
-                    p.purchase_price = 0;
-                    p.markup = 0;
-
-                    render_product(p);
-                });
-            });
+          render_product(p);
         });
+      });
+    });
+  }
+
+  function income_perspective() {
+    load_template('src/views/template/income_perspective.ejs', { }, function($html){
+      $('#main_container').html($html);
+    });
+  }
+
+  function render_product(product) {
+    load_template('src/views/template/product_row.ejs', { product: product }, function($html){
+      $('#products').append($html);
+    });
+  }
+
+  function load_template(path, data, callback) {
+    if (config.get('binary')) {
+      path = 'resources/app.asar/' + path;
     }
 
-    function income_perspective() {
-        load_template('src/views/template/income_perspective.ejs', { }, function($html){
-            $('#main_container').html($html);
-        });
-    }
-
-    function render_product(product) {
-        load_template('src/views/template/product_row.ejs', { product: product }, function($html){
-            $('#products').append($html);
-        });
-    }
-
-    function load_template(path, data, callback) {
-        if (config.get('binary')) {
-            path = 'resources/app.asar/' + path;
-        }
-
-        ejs.renderFile(path, data, {}, (error, html) => {
-            if (error) {
-                throw new Error(error);
-            } else {
-                callback($(html));
-            }
-        });
-    }
+    ejs.renderFile(path, data, {}, (error, html) => {
+      if (error) {
+        throw new Error(error);
+      } else {
+        callback($(html));
+      }
+    });
+  }
 </script>
 </body>
 </html>

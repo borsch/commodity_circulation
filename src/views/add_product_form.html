@@ -3,7 +3,7 @@
 <head>
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
     <script src="../assets/js/jquery.min.js"></script>
-    <script src="../assets/js/utils/jquery.numeric.js"></script>
+    <script src="../assets/js/jquery.inputmask.bundle.min.js"></script>
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
     <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
     <script>if (window.module) module = window.module;</script>
@@ -40,7 +40,7 @@
 <script>
     const { ipcRenderer } = require('electron');
 
-    $('[data-type=number]').numeric({decimal : ".",  negative : false, scale: 3});
+    $('[data-type=number]').inputmask('decimal', { rightAlign: false });
 
     $('#product_form').submit(function(e){
         e.preventDefault();
