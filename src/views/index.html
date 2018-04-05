@@ -11,11 +11,13 @@
 <div id="main_container">
 
 </div>
+<script src="../assets/js/utils/date.format.js"></script>
 <script>
   const { ipcRenderer } = require('electron');
   const ejs = require('ejs');
   const config = require('electron-node-config');
   const database = require('../assets/js/database');
+  const lodash = require('lodash');
 
   products_perspective();
 
@@ -54,6 +56,80 @@
 
   function income_perspective() {
     load_template('src/views/template/income_perspective.ejs', { }, function($html){
+      $html.find('#filter_form').submit(function(e){
+        e.preventDefault();
+
+        let $form = $(this),
+          start = new Date($form.find('[name=from]').val()),
+          end = new Date($form.find('[name=till]').val()),
+          days = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+
+        if (days < 1) {
+          alert('Перевірте будь ласка дати');
+          return;
+        }
+
+        let date_row = '',
+          date_headers = '',
+          result_table = '',
+          temp_start = new Date(start),
+          dates = [];
+
+        while(temp_start < end){
+          date_row += '<th colspan="2" class="text-center">' + temp_start.format('dd/MM', 'uk') + '</th>';
+          date_headers += '<th class="text-center">к-ть</th><th class="text-center">ціна</th>';
+
+          dates.push(temp_start);
+
+          let newDate = temp_start.setDate(temp_start.getDate() + 1);
+          temp_start = new Date(newDate);
+        }
+
+        date_row += '<th colspan="2"></th>';
+        date_headers += '<th colspan="2"></th>';
+
+        database.get_products_income_period(start, end, function(error, result){
+          if (result && result.length) {
+            result = lodash.groupBy(result, a => a.product_code);
+
+            for (let product_code in result) {
+              let values = result[product_code];
+              values = values.sort((a, b) => (a.income_date.getTime() - b.income_date.getTime()));
+
+              result_table += '<tr><td>' + product_code + '</td><td></td>';
+
+              let total_sum = 0;
+
+              dates.forEach(function(date){
+                let amount = 0,
+                  purchase_price = 0;
+
+                values.forEach(function(item){
+                  if (item.income_date.getDate() === date.getDate()
+                    && item.income_date.getMonth() === date.getMonth()
+                    && item.income_date.getYear() === date.getYear()) {
+
+                    amount += item.amount;
+                    purchase_price = item.purchase_price;
+
+                    total_sum += item.amount * item.purchase_price;
+                  }
+                });
+
+                result_table += '<td>' + (amount || '') + '</td><td>' + (purchase_price || '') + '</td>';
+              });
+              result_table += '<td colspan="2">' + total_sum + '</td></tr>';
+            }
+          } else {
+            alert('Нічого не знайдено');
+          }
+
+          $html.find('.days-header').attr('colspan', days * 2 + 1);
+          $html.find('.date-row').html(date_row);
+          $html.find('.date-headers').html(date_headers);
+          $html.find('#income_list').html(result_table);
+        });
+      });
       $('#main_container').html($html);
     });
   }

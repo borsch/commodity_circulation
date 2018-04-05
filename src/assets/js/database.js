@@ -92,6 +92,14 @@ module.exports.product_income = function(income, cb) {
   });
 };
 
+module.exports.get_products_income_period = function(from, till, cb) {
+  ProductIncome
+    .find({income_date: {'$gte': from, '$lte': till}})
+    .exec(function(error, result) {
+      cb(error, result);
+    });
+};
+
 
 function update_product(product, new_values, cb) {
   Product.findByIdAndUpdate(
