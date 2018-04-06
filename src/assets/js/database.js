@@ -8,7 +8,8 @@ const Product = mongoose.model('Product', {
   residual: Number,
   purchase_price: Number,
   purchase_price_usd: Number,
-  sale_price: Number
+  sale_price: Number,
+  sale_price_usd: Number
 });
 
 const ProductIncome = mongoose.model('ProductIncome', {
@@ -17,6 +18,7 @@ const ProductIncome = mongoose.model('ProductIncome', {
   purchase_price: Number,
   purchase_price_usd: Number,
   sale_price: Number,
+  sale_price_usd: Number,
   income_date: Date
 });
 
@@ -72,7 +74,8 @@ module.exports.product_income = function(income, cb) {
           residual: income.amount + (product.residual || 0),
           purchase_price: income.purchase_price,
           purchase_price_usd: income.purchase_price_usd,
-          sale_price: income.sale_price
+          sale_price: income.sale_price,
+          sale_price_usd: income.sale_price_usd
         },
         function(error) {
           if (error) {

@@ -21,8 +21,15 @@
 
   products_perspective();
 
-  ipcRenderer.on('on_add_product_add_success', function(event, data){
-    render_product(data);
+  ipcRenderer.on('on_add_product_add_success', function(event, p){
+    p.residual = p.residual || 0;
+    p.purchase_price = p.purchase_price || 0;
+    p.purchase_price_usd = p.purchase_price_usd || 0;
+    p.sale_price = p.sale_price || 0;
+    p.sale_price_usd = p.sale_price_usd || 0;
+
+
+    render_product(p);
   });
 
   ipcRenderer.on('on_add_product_add_fail', function(){
@@ -47,6 +54,7 @@
           p.purchase_price = p.purchase_price || 0;
           p.purchase_price_usd = p.purchase_price_usd || 0;
           p.sale_price = p.sale_price || 0;
+          p.sale_price_usd = p.sale_price_usd || 0;
 
           render_product(p);
         });
@@ -92,8 +100,6 @@
         database.get_products_income_period(start, end, function(error, result){
           if (result && result.length) {
             result = lodash.groupBy(result, a => a.product_code);
-
-            console.log(result);
 
             for (let product_code in result) {
               let values = result[product_code];

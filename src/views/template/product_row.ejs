@@ -6,7 +6,11 @@
     <td><%= product.purchase_price.toFixed(2) %></td>
     <td><%= product.purchase_price_usd.toFixed(2) %></td>
     <td><%= product.sale_price.toFixed(2) %></td>
+    <td><%= product.sale_price_usd.toFixed(2) %></td>
     <td><%= (product.purchase_price * product.residual).toFixed(2) %></td>
+    <td><%= (product.purchase_price_usd * product.residual).toFixed(2) %></td>
     <td><%= (product.sale_price * product.residual).toFixed(2) %></td>
+    <td><%= (product.sale_price_usd * product.residual).toFixed(2) %></td>
     <td><%= (product.sale_price * product.residual - product.purchase_price * product.residual).toFixed(2) %></td>
+    <td><%= (product.sale_price_usd * product.residual - product.purchase_price_usd * product.residual).toFixed(2) %></td>
 </tr>
