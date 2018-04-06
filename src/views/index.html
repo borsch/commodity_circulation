@@ -71,7 +71,6 @@
 
         let date_row = '',
           date_headers = '',
-          result_table = '',
           temp_start = new Date(start),
           dates = [];
 
@@ -79,26 +78,31 @@
           date_row += '<th colspan="2" class="text-center">' + temp_start.format('dd/MM', 'uk') + '</th>';
           date_headers += '<th class="text-center">к-ть</th><th class="text-center">ціна</th>';
 
-          dates.push(temp_start);
+          dates.push(new Date(temp_start));
 
           let newDate = temp_start.setDate(temp_start.getDate() + 1);
           temp_start = new Date(newDate);
         }
 
-        date_row += '<th colspan="2"></th>';
-        date_headers += '<th colspan="2"></th>';
+        date_row += '<th class="text-center" rowspan="2">к-ть</th><th class="text-center" rowspan="2">ціна</th>';
+
+        let $income_container = $html.find('#income_list');
+        $income_container.empty();
 
         database.get_products_income_period(start, end, function(error, result){
           if (result && result.length) {
             result = lodash.groupBy(result, a => a.product_code);
 
+            console.log(result);
+
             for (let product_code in result) {
               let values = result[product_code];
               values = values.sort((a, b) => (a.income_date.getTime() - b.income_date.getTime()));
 
-              result_table += '<tr><td>' + product_code + '</td><td></td>';
+              let result_table = '<tr><td class="product-name"></td><td class="product-residual"></td>';
 
-              let total_sum = 0;
+              let total_sum = 0,
+                total_amount = 0;
 
               dates.forEach(function(date){
                 let amount = 0,
@@ -113,21 +117,33 @@
                     purchase_price = item.purchase_price;
 
                     total_sum += item.amount * item.purchase_price;
+                    total_amount += amount;
                   }
                 });
 
                 result_table += '<td>' + (amount || '') + '</td><td>' + (purchase_price || '') + '</td>';
               });
-              result_table += '<td colspan="2">' + total_sum + '</td></tr>';
+              result_table += '<td>' + total_amount + '</td><td>' + total_sum + '</td></tr>';
+
+              result_table = $(result_table);
+
+              database.get_product_by_code(product_code, function(error, result){
+                if (result) {
+                  result_table.find('.product-name').text(result.code + ', ' + result.name);
+                  result_table.find('.product-residual').text(result.residual);
+                }
+              });
+
+              $income_container.append(result_table);
             }
           } else {
             alert('Нічого не знайдено');
           }
 
-          $html.find('.days-header').attr('colspan', days * 2 + 1);
+          $html.find('.days-header').attr('colspan', days * 2);
           $html.find('.date-row').html(date_row);
           $html.find('.date-headers').html(date_headers);
-          $html.find('#income_list').html(result_table);
+          $html.find('.date-period').text(start.format('dd/MM/yy') + ' - ' + end.format('dd/MM/yy'));
         });
       });
       $('#main_container').html($html);

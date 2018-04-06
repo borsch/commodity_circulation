@@ -42,6 +42,12 @@ module.exports.get_all_products = function(cb) {
   });
 };
 
+module.exports.get_product_by_code = function(code, cb) {
+  Product.findOne({code: code}, function(error, result){
+    cb(error, result);
+  });
+};
+
 module.exports.get_products_match = function(query, cb) {
   let regex_expression = { $regex: new RegExp(query, "ig") };
 
