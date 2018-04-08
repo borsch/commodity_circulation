@@ -11,71 +11,170 @@
 <div id="main_container">
 
 </div>
+<script src="../assets/js/utils/date.format.js"></script>
 <script>
-    const { ipcRenderer } = require('electron');
-    const ejs = require('ejs');
-    const config = require('electron-node-config');
-    const database = require('../assets/js/database');
+  const { ipcRenderer } = require('electron');
+  const ejs = require('ejs');
+  const config = require('electron-node-config');
+  const database = require('../assets/js/database');
+  const lodash = require('lodash');
 
+  products_perspective();
+
+  ipcRenderer.on('on_add_product_add_success', function(event, p){
+    p.residual = p.residual || 0;
+    p.purchase_price = p.purchase_price || 0;
+    p.purchase_price_usd = p.purchase_price_usd || 0;
+    p.sale_price = p.sale_price || 0;
+    p.sale_price_usd = p.sale_price_usd || 0;
+
+
+    render_product(p);
+  });
+
+  ipcRenderer.on('on_add_product_add_fail', function(){
+    alert('Невдалось додати продукт. Спробуйте ще раз або перевірте зєднання з базою даних та перезапустіть додаток');
+  });
+
+  ipcRenderer.on('on_menu_product_perspective', function(){
     products_perspective();
+  });
 
-    ipcRenderer.on('on_add_product_add_success', function(event, data){
-        render_product(data);
-    });
+  ipcRenderer.on('on_menu_income_perspective', function(){
+    income_perspective();
+  });
 
-    ipcRenderer.on('on_add_product_add_fail', function(){
-        alert('Невдалось додати продукт. Спробуйте ще раз або перевірте зєднання з базою даних та перезапустіть додаток');
-    });
+  function products_perspective() {
+    load_template('src/views/template/product_perspective.ejs', { }, function($html){
+      $('#main_container').html($html);
 
-    ipcRenderer.on('on_menu_product_perspective', function(){
-        products_perspective();
-    });
+      database.get_all_products(function(products){
+        products.forEach(function(p){
+          p.residual = p.residual || 0;
+          p.purchase_price = p.purchase_price || 0;
+          p.purchase_price_usd = p.purchase_price_usd || 0;
+          p.sale_price = p.sale_price || 0;
+          p.sale_price_usd = p.sale_price_usd || 0;
 
-    ipcRenderer.on('on_menu_income_perspective', function(){
-        income_perspective();
-    });
-
-    function products_perspective() {
-        load_template('src/views/template/product_perspective.ejs', { }, function($html){
-            $('#main_container').html($html);
-
-            database.get_all_products(function(products){
-                products.forEach(function(p){
-                    p.residual = 0;
-                    p.purchase_price = 0;
-                    p.markup = 0;
-
-                    render_product(p);
-                });
-            });
+          render_product(p);
         });
-    }
+      });
+    });
+  }
 
-    function income_perspective() {
-        load_template('src/views/template/income_perspective.ejs', { }, function($html){
-            $('#main_container').html($html);
-        });
-    }
+  function income_perspective() {
+    load_template('src/views/template/income_perspective.ejs', { }, function($html){
+      $html.find('#filter_form').submit(function(e){
+        e.preventDefault();
 
-    function render_product(product) {
-        load_template('src/views/template/product_row.ejs', { product: product }, function($html){
-            $('#products').append($html);
-        });
-    }
+        let $form = $(this),
+          start = new Date($form.find('[name=from]').val()),
+          end = new Date($form.find('[name=till]').val()),
+          days = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
 
-    function load_template(path, data, callback) {
-        if (config.get('binary')) {
-            path = 'resources/app.asar/' + path;
+        if (days < 1) {
+          alert('Перевірте будь ласка дати');
+          return;
         }
 
-        ejs.renderFile(path, data, {}, (error, html) => {
-            if (error) {
-                throw new Error(error);
-            } else {
-                callback($(html));
+        let date_row = '',
+          date_headers = '',
+          temp_start = new Date(start),
+          dates = [];
+
+        while(temp_start < end){
+          date_row += '<th colspan="2" class="text-center">' + temp_start.format('dd/MM', 'uk') + '</th>';
+          date_headers += '<th class="text-center">к-ть</th><th class="text-center">ціна</th>';
+
+          dates.push(new Date(temp_start));
+
+          let newDate = temp_start.setDate(temp_start.getDate() + 1);
+          temp_start = new Date(newDate);
+        }
+
+        date_row += '<th class="text-center" rowspan="2">к-ть</th><th class="text-center" rowspan="2">ціна</th>';
+
+        let $income_container = $html.find('#income_list');
+        $income_container.empty();
+
+        database.get_products_income_period(start, end, function(error, result){
+          if (result && result.length) {
+            result = lodash.groupBy(result, a => a.product_code);
+
+            for (let product_code in result) {
+              let values = result[product_code];
+              values = values.sort((a, b) => (a.income_date.getTime() - b.income_date.getTime()));
+
+              let result_table = '<tr><td class="product-name"></td><td class="product-residual"></td>';
+
+              let total_sum = 0,
+                total_amount = 0;
+
+              dates.forEach(function(date){
+                let amount = 0,
+                  purchase_price = 0;
+
+                values.forEach(function(item){
+                  if (item.income_date.getDate() === date.getDate()
+                    && item.income_date.getMonth() === date.getMonth()
+                    && item.income_date.getYear() === date.getYear()) {
+
+                    amount += item.amount;
+                    purchase_price = item.purchase_price;
+
+                    total_sum += item.amount * item.purchase_price;
+                    total_amount += amount;
+                  }
+                });
+
+                result_table += '<td>' + (amount || '') + '</td><td>' + (purchase_price || '') + '</td>';
+              });
+              result_table += '<td>' + total_amount + '</td><td>' + total_sum + '</td></tr>';
+
+              result_table = $(result_table);
+
+              database.get_product_by_code(product_code, function(error, result){
+                if (result) {
+                  result_table.find('.product-name').text(result.code + ', ' + result.name);
+                  result_table.find('.product-residual').text(result.residual);
+                }
+              });
+
+              $income_container.append(result_table);
             }
+          } else {
+            alert('Нічого не знайдено');
+          }
+
+          $html.find('.days-header').attr('colspan', days * 2);
+          $html.find('.date-row').html(date_row);
+          $html.find('.date-headers').html(date_headers);
+          $html.find('.date-period').text(start.format('dd/MM/yy') + ' - ' + end.format('dd/MM/yy'));
         });
+      });
+      $('#main_container').html($html);
+    });
+  }
+
+  function render_product(product) {
+    load_template('src/views/template/product_row.ejs', { product: product }, function($html){
+      $('#products').append($html);
+    });
+  }
+
+  function load_template(path, data, callback) {
+    if (config.get('binary')) {
+      path = 'resources/app.asar/' + path;
     }
+
+    ejs.renderFile(path, data, {}, (error, html) => {
+      if (error) {
+        throw new Error(error);
+      } else {
+        callback($(html));
+      }
+    });
+  }
 </script>
 </body>
 </html>

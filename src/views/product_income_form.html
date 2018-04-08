@@ -3,7 +3,7 @@
 <head>
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
     <script src="../assets/js/jquery.min.js"></script>
-    <script src="../assets/js/utils/jquery.numeric.js"></script>
+    <script src="../assets/js/jquery.inputmask.bundle.min.js"></script>
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
     <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
 
@@ -21,17 +21,32 @@
 
     <div class="form-group">
         <label>Кількість</label>
-        <input name="name" data-type="number" class="form-control" required>
+        <input name="amount" data-type="number" class="form-control" required>
     </div>
 
     <div class="form-group">
-        <label>Ціна за одиницю</label>
-        <input name="name" data-type="number" class="form-control" required>
+        <label>Ціна закупки за одиницю, грн.</label>
+        <input name="purchase_price" data-type="number" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label>Ціна закупки за одиницю, дол.</label>
+        <input name="purchase_price_usd" data-type="number" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label>Ціна продажу за одиницю, грн.</label>
+        <input name="sale_price" data-type="number" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label>Ціна продажу за одиницю, дол.</label>
+        <input name="sale_price_usd" data-type="number" class="form-control" required>
     </div>
 
     <div class="form-group">
         <label>Дата приходу</label>
-        <input name="name" type="date" class="form-control" required>
+        <input name="income_date" type="date" class="form-control" required>
     </div>
 
     <div class="text-center">
@@ -39,12 +54,11 @@
     </div>
 </form>
 <script>
-    const { ipcRenderer } = require('electron');
     const database = require('../assets/js/database');
 
     let PRODUCT_CODE;
 
-    $('[data-type=number]').numeric({decimal : ".",  negative : false, scale: 3});
+    $('[data-type=number]').inputmask('decimal', { rightAlign: false });
 
     $('[name=product_code]').unbind().autoComplete({
         minChars: 2,
@@ -68,7 +82,7 @@
         }
     });
 
-    $('#product_form').submit(function(e){
+    $('#income_product_form').submit(function(e){
         e.preventDefault();
 
         let data = {};
@@ -83,9 +97,18 @@
             }
         });
 
-        console.log(data);
+        if (data.amount < 0 || data.purchase_price < 0 || data.purchase_price_usd < 0 || data.sale_price_usd < 0) {
+          alert('Кількість і ціни мають містити невідємні значення');
+          return;
+        }
 
-        ipcRenderer.sendSync('on_add_product', data);
+        database.product_income(data, function (error, result) {
+          if (error) {
+            alert(error);
+          } else {
+            alert('Додано');
+          }
+        });
     });
 </script>
 </body>
