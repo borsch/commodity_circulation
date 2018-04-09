@@ -29,8 +29,6 @@
     p.purchase_price = p.purchase_price || 0;
     p.purchase_price_usd = p.purchase_price_usd || 0;
     p.sale_price = p.sale_price || 0;
-    p.sale_price_usd = p.sale_price_usd || 0;
-
 
     render_product(p);
   });
@@ -57,7 +55,6 @@
           p.purchase_price = p.purchase_price || 0;
           p.purchase_price_usd = p.purchase_price_usd || 0;
           p.sale_price = p.sale_price || 0;
-          p.sale_price_usd = p.sale_price_usd || 0;
 
           render_product(p);
         });
@@ -92,7 +89,7 @@
           temp_start = new Date(start),
           dates = [];
 
-        while(temp_start.getMonth() <= end.getMonth() && temp_start.getFullYear() <= end.getFullYear()){
+        while(temp_start.getTime()<= end.getTime()){
           date_row += '<th colspan="2" class="text-center">' + temp_start.format('MM/yyyy', 'uk') + '</th>';
           date_headers += '<th class="text-center">к-ть</th><th class="text-center">ціна</th>';
 
@@ -116,10 +113,13 @@
               let values = result[product_code];
               values = values.sort((a, b) => (a.income_date.getTime() - b.income_date.getTime()));
 
-              let result_table = '<tr><td class="product-name"></td><td class="product-residual"></td>';
+              let result_table = '<tr><td class="product-name" rowspan="2"></td><td class="product-residual" rowspan="2"></td>';
+              let outcome_row = '<tr>';
 
-              let total_sum = 0,
-                total_amount = 0;
+              let total_sum_income = 0,
+                total_amount_income = 0,
+                total_sum_outcome = 0,
+                total_amount_outcome = 0;
 
               dates.forEach(function(date){
                 let amount = 0,
@@ -132,16 +132,18 @@
                     amount += item.amount;
                     purchase_price = item.purchase_price;
 
-                    total_sum += item.amount * item.purchase_price;
-                    total_amount += amount;
+                    total_sum_income += item.amount * item.purchase_price;
+                    total_amount_income += item.amount;
                   }
                 });
 
                 result_table += '<td>' + (amount || '') + '</td><td>' + (purchase_price || '') + '</td>';
+                outcome_row += '<td></td><td></td>';
               });
-              result_table += '<td>' + total_amount + '</td><td>' + total_sum + '</td></tr>';
+              result_table += '<td>' + total_amount_income + '</td><td>' + total_sum_income + '</td></tr>';
+              outcome_row += '<td>' + total_amount_outcome + '</td><td>' + total_sum_outcome + '</td></tr>';
 
-              result_table = $(result_table);
+              result_table = $(result_table + outcome_row);
 
               database.get_product_by_code(product_code, function(error, result){
                 if (result) {

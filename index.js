@@ -72,16 +72,12 @@ function create_menu() {
                     click: function() {
                         if (!product_window)
                             add_product_window();
-
-                        browser_window.webContents.send('on_menu_product_perspective', {});
                     }
                 }, {
                     label: 'Форма приходу товару',
                     click: function() {
                         if (!income_product_window)
                             income_product_window_create();
-
-                        browser_window.webContents.send('on_menu_income_perspective', {});
                     }
                 }
             ]

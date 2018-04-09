@@ -40,11 +40,6 @@
     </div>
 
     <div class="form-group">
-        <label>Ціна продажу за одиницю, дол.</label>
-        <input name="sale_price_usd" data-type="number" class="form-control" required>
-    </div>
-
-    <div class="form-group">
         <label>Дата приходу</label>
         <input name="income_date" type="date" class="form-control" required>
     </div>
@@ -97,7 +92,7 @@
             }
         });
 
-        if (data.amount < 0 || data.purchase_price < 0 || data.purchase_price_usd < 0 || data.sale_price_usd < 0) {
+        if (data.amount < 0 || data.purchase_price < 0 || data.purchase_price_usd < 0) {
           alert('Кількість і ціни мають містити невідємні значення');
           return;
         }
