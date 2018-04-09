@@ -1,0 +1,17 @@
+{
+  "name": "commodity-circulation",
+  "description": "commodity circulation",
+  "main": "index.js",
+  "authors": [
+    "Oleh Kurpia"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/borsch/commodity_circulation",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

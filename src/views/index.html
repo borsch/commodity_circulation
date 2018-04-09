@@ -5,6 +5,9 @@
     <script src="../assets/js/jquery.min.js"></script>
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
     <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../assets/js/jquery-ui-1.9.2.custom.min.js"></script>
+    <link rel="stylesheet" href="../assets/css/jquery-ui-1.9.2.custom.min.css">
+    <script src="../assets/js/jquery.mtz.monthpicker.js"></script>
     <script>if (window.module) module = window.module;</script>
 </head>
 <body>
@@ -64,15 +67,22 @@
 
   function income_perspective() {
     load_template('src/views/template/income_perspective.ejs', { }, function($html){
+      $html.find('[name=from], [name=till]').monthpicker({
+        pattern: 'mm/yyyy',
+        monthNames: ['Січ', 'Лют', 'Бер', 'Кві', 'Тра', 'Чер', 'Лип', 'Сер', 'Вер', 'Жов', 'Лис', 'Гру']
+      });
+
       $html.find('#filter_form').submit(function(e){
         e.preventDefault();
 
-        let $form = $(this),
-          start = new Date($form.find('[name=from]').val()),
-          end = new Date($form.find('[name=till]').val()),
-          days = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
 
-        if (days < 1) {
+        let $form = $(this),
+          start_parts = $form.find('[name=from]').val().split('/'),
+          end_parts = $form.find('[name=till]').val().split('/'),
+          start = new Date(start_parts[1], start_parts[0] - 1, 1),
+          end = new Date(end_parts[1], end_parts[0], 0);
+
+        if ((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24) < 1) {
           alert('Перевірте будь ласка дати');
           return;
         }
@@ -82,14 +92,15 @@
           temp_start = new Date(start),
           dates = [];
 
-        while(temp_start < end){
-          date_row += '<th colspan="2" class="text-center">' + temp_start.format('dd/MM', 'uk') + '</th>';
+        while(temp_start.getMonth() <= end.getMonth() && temp_start.getFullYear() <= end.getFullYear()){
+          date_row += '<th colspan="2" class="text-center">' + temp_start.format('MM/yyyy', 'uk') + '</th>';
           date_headers += '<th class="text-center">к-ть</th><th class="text-center">ціна</th>';
 
           dates.push(new Date(temp_start));
 
-          let newDate = temp_start.setDate(temp_start.getDate() + 1);
-          temp_start = new Date(newDate);
+          let newDate = new Date(temp_start);
+          newDate.setMonth(newDate.getMonth() + 1);
+          temp_start = newDate;
         }
 
         date_row += '<th class="text-center" rowspan="2">к-ть</th><th class="text-center" rowspan="2">ціна</th>';
@@ -115,8 +126,7 @@
                   purchase_price = 0;
 
                 values.forEach(function(item){
-                  if (item.income_date.getDate() === date.getDate()
-                    && item.income_date.getMonth() === date.getMonth()
+                  if (item.income_date.getMonth() === date.getMonth()
                     && item.income_date.getYear() === date.getYear()) {
 
                     amount += item.amount;
@@ -146,7 +156,7 @@
             alert('Нічого не знайдено');
           }
 
-          $html.find('.days-header').attr('colspan', days * 2);
+          $html.find('.days-header').attr('colspan', dates.length * 2);
           $html.find('.date-row').html(date_row);
           $html.find('.date-headers').html(date_headers);
           $html.find('.date-period').text(start.format('dd/MM/yy') + ' - ' + end.format('dd/MM/yy'));
