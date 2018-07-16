@@ -105,13 +105,13 @@
         let $income_container = $html.find('#income_list');
         $income_container.empty();
 
-        database.get_products_income_period(start, end, function(error, result){
+        database.get_products_history_period(start, end, function(error, result){
           if (result && result.length) {
             result = lodash.groupBy(result, a => a.product_code);
 
             for (let product_code in result) {
               let values = result[product_code];
-              values = values.sort((a, b) => (a.income_date.getTime() - b.income_date.getTime()));
+              values = values.sort((a, b) => (a.date.getTime() - b.date.getTime()));
 
               let result_table = '<tr><td class="product-name" rowspan="2"></td><td class="product-residual" rowspan="2"></td>';
               let outcome_row = '<tr>';
@@ -122,23 +122,33 @@
                 total_amount_outcome = 0;
 
               dates.forEach(function(date){
-                let amount = 0,
-                  purchase_price = 0;
+                let amount_in = 0,
+                  purchase_price_in = 0,
+                    amount_out = 0,
+                    sale_price_out = 0;
 
                 values.forEach(function(item){
-                  if (item.income_date.getMonth() === date.getMonth()
-                    && item.income_date.getYear() === date.getYear()) {
+                  if (item.date.getMonth() === date.getMonth()
+                    && item.date.getYear() === date.getYear()) {
 
-                    amount += item.amount;
-                    purchase_price = item.purchase_price;
+                      if (item.type === 'income') {
+                          amount_in += item.amount;
+                          purchase_price_in = item.purchase_price;
 
-                    total_sum_income += item.amount * item.purchase_price;
-                    total_amount_income += item.amount;
+                          total_sum_income += item.amount * item.purchase_price;
+                          total_amount_income += item.amount;
+                      } else {
+                          amount_out += item.amount;
+                          sale_price_out = item.sale_price;
+
+                          total_sum_outcome += item.amount * item.sale_price;
+                          total_amount_outcome += item.amount;
+                      }
                   }
                 });
 
-                result_table += '<td>' + (amount || '') + '</td><td>' + (purchase_price || '') + '</td>';
-                outcome_row += '<td></td><td></td>';
+                result_table += '<td>' + (amount_in || '') + '</td><td>' + (purchase_price_in || '') + '</td>';
+                outcome_row += '<td>' + (amount_out || '') + '</td><td>' + (sale_price_out || '') + '</td>';
               });
               result_table += '<td>' + total_amount_income + '</td><td>' + total_sum_income + '</td></tr>';
               outcome_row += '<td>' + total_amount_outcome + '</td><td>' + total_sum_outcome + '</td></tr>';

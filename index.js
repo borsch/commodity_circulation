@@ -6,6 +6,7 @@ const database = require('./src/assets/js/database');
 let browser_window;
 let product_window;
 let income_product_window;
+let outcome_product_window;
 
 app.on('ready', () => {
     create_window();
@@ -79,6 +80,12 @@ function create_menu() {
                         if (!income_product_window)
                             income_product_window_create();
                     }
+                }, {
+                    label: 'Форма розходу товару',
+                    click: function() {
+                        if (!income_product_window)
+                            outcome_product_window_create();
+                    }
                 }
             ]
         }, {
@@ -90,7 +97,7 @@ function create_menu() {
                         browser_window.webContents.send('on_menu_product_perspective', {});
                     }
                 }, {
-                    label: 'Прихід',
+                    label: 'Прихід-розхід',
                     click: function() {
                         browser_window.webContents.send('on_menu_income_perspective', {});
                     }
@@ -148,4 +155,27 @@ function income_product_window_create() {
 
     income_product_window.show();
     income_product_window.setMenu(Menu.buildFromTemplate([]));
+}
+
+function outcome_product_window_create() {
+  outcome_product_window = new BrowserWindow({
+    width: 600,
+    height: 700,
+    devTools: true
+  });
+
+  outcome_product_window.loadURL(url.format ({
+    pathname: path.join(__dirname, `src/views/product_outcome_form.html`),
+    protocol: 'file:',
+    slashes: true
+  }));
+
+  outcome_product_window.webContents.openDevTools();
+
+  outcome_product_window.on('closed', () => {
+    outcome_product_window = null
+  });
+
+  outcome_product_window.show();
+  outcome_product_window.setMenu(Menu.buildFromTemplate([]));
 }
