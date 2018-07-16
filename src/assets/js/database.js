@@ -78,13 +78,24 @@ module.exports.product_income = function(income, cb) {
                 }
             }
 
+            let updated_product = {
+                residual: (income.type === 'outcome' ? -1 : 1) * income.amount + (product.residual || 0)
+            };
+
+            if (income.purchase_price) {
+                updated_product.purchase_price = income.purchase_price;
+            }
+
+            if (income.purchase_price_usd) {
+                updated_product.purchase_price_usd = income.purchase_price_usd;
+            }
+
+            if (income.sale_price) {
+                updated_product.sale_price = income.sale_price;
+            }
+
             update_product(
-                product, {
-                    residual: (income.type === 'outcome' ? -1 : 1) * income.amount + (product.residual || 0),
-                    purchase_price: income.purchase_price,
-                    purchase_price_usd: income.purchase_price_usd,
-                    sale_price: income.sale_price
-                },
+                product, updated_product,
                 function(error) {
                     if (error) {
                         update_product(product, null, function(){
@@ -119,9 +130,6 @@ module.exports.get_products_history_period = function(from, till, cb) {
 
 
 function update_product(product, new_values, cb) {
-    console.log(product);
-    console.log(new_values);
-
     Product.findByIdAndUpdate(
         product.id,
         new_values || product,
