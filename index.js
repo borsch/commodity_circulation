@@ -8,6 +8,7 @@ let browser_window;
 let product_window;
 let income_product_window;
 let outcome_product_window;
+let import_products_window;
 
 app.on('ready', () => {
     create_window();
@@ -103,6 +104,17 @@ function create_menu() {
                     }
                 }
             ]
+        }, {
+            label: 'Імпорт',
+            submenu: [
+                {
+                    label: 'Імпорт товарів',
+                    click: function() {
+                        if (!import_products_window)
+                            import_products_window_create();
+                    }
+                }
+            ]
         }
     ];
 
@@ -159,6 +171,32 @@ function income_product_window_create() {
 
     income_product_window.show();
     income_product_window.setMenu(Menu.buildFromTemplate([]));
+}
+
+function import_products_window_create() {
+    import_products_window = new BrowserWindow({
+        width: 600,
+        height: 700,
+        devTools: true,
+        title: 'Імпорт товарів'
+    });
+
+    import_products_window.loadURL(url.format ({
+        pathname: path.join(__dirname, `src/views/import_products.html`),
+        protocol: 'file:',
+        slashes: true
+    }));
+
+    if (config.get('dev_tools')) {
+        import_products_window.webContents.openDevTools();
+    }
+
+    import_products_window.on('closed', () => {
+        import_products_window = null
+    });
+
+    import_products_window.show();
+    import_products_window.setMenu(Menu.buildFromTemplate([]));
 }
 
 function outcome_product_window_create() {

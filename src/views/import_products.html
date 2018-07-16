@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+    <script src="../assets/js/jquery.min.js"></script>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+
+    <script>if (window.module) module = window.module;</script>
+    <title>Імпорт товарів</title>
+</head>
+<body class="container" style="padding-top: 20px; padding-bottom: 20px;">
+<form>
+
+    <div class="form-group">
+        <label>Всього знайдено записів в файлику:</label>
+        <span class="total-lines">0</span>
+    </div>
+
+    <div class="form-group">
+        <label>Додано товарів:</label>
+        <span class="added-lines">0</span>
+    </div>
+
+    <div class="form-group">
+        <label>Пропущено(пуста назва або такий код вже існує):</label>
+        <span class="skipped-lines">0</span>
+    </div>
+
+    <div class="form-group">
+        <label>Файл</label>
+        <input type="file" id="file">
+    </div>
+
+    <div class="text-center">
+        <button type="submit" class="btn btn-success">Імпортувати</button>
+    </div>
+</form>
+<script>
+    const database = require('../assets/js/database');
+    const fs = require('fs');
+
+    let $file_input = $('#file')[0];
+    let added = 0;
+    let skipped = 0;
+    let lines = [];
+
+    $('form').submit(function(e){
+        e.preventDefault();
+
+        if (!$file_input.files || !$file_input.files[0]) {
+            alert('Виберіть будь ласка файл');
+            return;
+        }
+
+        added = 0;
+        skipped = 0
+        let file = $file_input.files[0];
+
+        if (!file.path.endsWith('.csv')) {
+            alert('Виберіть файл з розширенням CSV');
+            return;
+        }
+
+
+        fs.readFile(file.path, 'utf8', function(error, content){
+            console.log(error);
+            if (error) {
+                alert('Виникли проблеми при відкриті файлу');
+            } else {
+                lines = content.split('\n');
+                lines.splice(0, 1);
+
+                let intervalId = setInterval(function(){
+                    $('.added-lines').text(added);
+                    $('.skipped-lines').text(skipped);
+                    $('.total-lines').text(lines.length);
+
+                    if (added + skipped === lines.length) {
+                        alert('Імпорт завершено');
+                        clearInterval(intervalId);
+                    }
+                }, 500);
+
+                $('.total-lines').text(lines.length);
+
+                lines.forEach(function(line){
+                    line = line.replace(/""/g, "\"");
+
+                    let parts = line.split(';'),
+                        product_name = parts[1];
+
+                    if (product_name) {
+                        if (product_name[0] === "\"") {
+                            product_name = product_name.substr(1, product_name.length);
+                        }
+
+                        if (product_name[product_name.length - 1] === "\"") {
+                            product_name = product_name.substr(0, product_name.length - 1);
+                        }
+
+                        let product = {
+                            code: parts[0],
+                            name: product_name,
+                            unit: parts[2],
+                            residual: parseFloat(parts[3]),
+                            purchase_price: parseFloat(parts[4]),
+                            purchase_price_usd: parseFloat(parts[5]),
+                            sale_price: parseFloat(parts[6])
+                        };
+
+                        database.get_product_by_code(product.code, function(error, result){
+                            if (!result) {
+                                database.add_product(product);
+                                ++added;
+                            } else {
+                                ++skipped;
+                            }
+                        });
+                    } else {
+                        ++skipped;
+                    }
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>
