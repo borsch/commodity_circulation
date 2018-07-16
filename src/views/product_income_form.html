@@ -51,8 +51,6 @@
 <script>
     const database = require('../assets/js/database');
 
-    let PRODUCT_CODE;
-
     $('[data-type=number]').inputmask('decimal', { rightAlign: false });
 
     $('[name=product_code]').unbind().autoComplete({
@@ -63,9 +61,17 @@
             });
         },
         onSelect: function(e, term, item){
-            PRODUCT_CODE = item.data('code');
+            let code = item.data('code');
 
-            $('[name=product_code]').val(PRODUCT_CODE);
+            $('[name=product_code]').val(code);
+
+            database.get_product_by_code(code, function(error, result){
+                if (result) {
+                    $('[name=purchase_price]').val(result.purchase_price);
+                    $('[name=purchase_price_usd]').val(result.purchase_price_usd);
+                    $('[name=sale_price]').val(result.sale_price);
+                }
+            });
         },
         renderItem: function (product, search){
             search = search.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -98,6 +104,8 @@
           alert('Кількість і ціни мають містити невідємні значення');
           return;
         }
+
+        console.log(data);
 
         database.product_income(data, function (error, result) {
           if (error) {

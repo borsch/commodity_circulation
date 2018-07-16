@@ -77,7 +77,6 @@ module.exports.product_income = function(income, cb) {
                     sale_price: income.sale_price
                 },
                 function(error) {
-                    console.log(error);
                     if (error) {
                         update_product(product, null, function(){
                             cb('Невдалось зберегти прихід');
@@ -86,8 +85,6 @@ module.exports.product_income = function(income, cb) {
                         let product_history_obj = new ProductHistory(income);
 
                         product_history_obj.save(function(error){
-                            console.log(error);
-
                             if (error) {
                                 update_product(product, null, function(){
                                     cb('Невдалось зберегти історію товару');

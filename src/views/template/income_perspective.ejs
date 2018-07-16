@@ -1,14 +1,10 @@
 <style>
-    table {
-        table-layout: auto !important;
-    }
-
-    th, td, thead th, tbody td, tfoot td, tfoot th {
-        width: auto;
+    .product-name {
+        width: 150px;
     }
 </style>
 <div style="padding-top: 20px;">
-    <form id="filter_form" class="row">
+    <form id="filter_form" class="row" style="padding-left: 30px; padding-right: 30px;">
         <div class="form-group col-4">
             <label>Період з</label>
             <input name="from" class="form-control" required>
@@ -22,25 +18,25 @@
         </div>
     </form>
 
-    <table class="table table-striped table-bordered table-sm table-hover">
-    <thead>
-    <tr>
-        <th rowspan="3" class="text-center" style="vertical-align: middle;">Код</th>
-        <th rowspan="3" class="text-center" style="vertical-align: middle; width: 50px;">
-            Залишок
-        </th>
-        <th colspan="" class="text-center days-header" style="vertical-align: middle;">Дата&nbsp;<span class="date-period"></span></th>
-        <th colspan="2" class="text-center days-header" style="vertical-align: middle;">Прихід</th>
-    </tr>
-    <tr class="date-row">
+    <table class="table table-striped table-bordered table-sm table-hover table-fixed">
+        <thead class="compareTableHead">
+        <tr>
+            <th rowspan="3" class="text-center" style="vertical-align: middle;">Код</th>
+            <th rowspan="3" class="text-center" style="vertical-align: middle; width: 50px;">
+                Залишок
+            </th>
+            <th colspan="" class="text-center days-header" style="vertical-align: middle;">Дата&nbsp;<span class="date-period"></span></th>
+            <th colspan="2" class="text-center days-header" style="vertical-align: middle;">Прихід</th>
+        </tr>
+        <tr class="date-row">
 
-    </tr>
-    <tr class="date-headers">
+        </tr>
+        <tr class="date-headers">
 
-    </tr>
-    </thead>
-    <tbody id="income_list">
+        </tr>
+        </thead>
+        <tbody id="income_list">
 
-    </tbody>
-</table>
+        </tbody>
+    </table>
 </div>
