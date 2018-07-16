@@ -25,11 +25,11 @@
         <select name="unit" class="form-control" required>
             <option selected disabled>--- вибрати ---</option>
             <option value="м">м</option>
-            <option>м2</option>
-            <option>м3</option>
-            <option>кг</option>
-            <option>л</option>
-            <option>шт.</option>
+            <option value="м2">м2</option>
+            <option value="м3">м3</option>
+            <option value="кг">кг</option>
+            <option value="л">л</option>
+            <option value="шт.">шт.</option>
         </select>
     </div>
 
@@ -39,6 +39,11 @@
 </form>
 <script>
     const { ipcRenderer } = require('electron');
+    const database = require('../assets/js/database');
+
+    ipcRenderer.on('on_add_product_add_fail', function(){
+        alert('Невдалось додати продукт. Спробуйте ще раз або перевірте зєднання з базою даних та перезапустіть додаток');
+    });
 
     $('[data-type=number]').inputmask('decimal', { rightAlign: false });
 
@@ -57,9 +62,13 @@
             }
         });
 
-        console.log(data);
-
-        ipcRenderer.sendSync('on_add_product', data);
+        database.get_product_by_code(data.code + '', function(error, product){
+            if (product) {
+                alert('Товар з таким кодом вже існує');
+            } else {
+                ipcRenderer.sendSync('on_add_product', data);
+            }
+        });
     });
 </script>
 </body>

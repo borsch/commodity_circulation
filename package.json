@@ -15,6 +15,7 @@
   "dependencies": {
     "ejs": "^2.5.7",
     "electron-node-config": "^1.1.0",
+    "jquery-ui-month-picker": "^3.0.4",
     "lodash": "^4.17.5",
     "md5": "^2.2.1",
     "mongoose": "^5.0.2"

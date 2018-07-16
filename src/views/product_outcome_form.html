@@ -10,10 +10,15 @@
     <script src="../assets/js/autocomlete/jquery.auto-complete.min.js"></script>
     <link rel="stylesheet" href="../assets/js/autocomlete/jquery.auto-complete.css">
     <script>if (window.module) module = window.module;</script>
-    <title>Прихід</title>
+    <title>Розхід</title>
 </head>
 <body class="container" style="padding-top: 20px; padding-bottom: 20px;">
 <form id="income_product_form">
+    <div class="form-group">
+        <label>Залишок на складі залишилось:</label>
+        <span class="product-amount"></span>
+    </div>
+
     <div class="form-group">
         <label>Код</label>
         <input name="product_code" class="form-control" required>
@@ -25,22 +30,12 @@
     </div>
 
     <div class="form-group">
-        <label>Ціна закупки за одиницю, грн.</label>
-        <input name="purchase_price" data-type="number" class="form-control" required>
-    </div>
-
-    <div class="form-group">
-        <label>Ціна закупки за одиницю, дол.</label>
-        <input name="purchase_price_usd" data-type="number" class="form-control" required>
-    </div>
-
-    <div class="form-group">
         <label>Ціна продажу за одиницю, грн.</label>
         <input name="sale_price" data-type="number" class="form-control" required>
     </div>
 
     <div class="form-group">
-        <label>Дата приходу</label>
+        <label>Дата розходу</label>
         <input name="date" type="date" class="form-control" required>
     </div>
 
@@ -61,23 +56,15 @@
             });
         },
         onSelect: function(e, term, item){
-            let code = item.data('code');
-
-            $('[name=product_code]').val(code);
-
-            database.get_product_by_code(code, function(error, result){
-                if (result) {
-                    $('[name=purchase_price]').val(result.purchase_price);
-                    $('[name=purchase_price_usd]').val(result.purchase_price_usd);
-                    $('[name=sale_price]').val(result.sale_price);
-                }
-            });
+            $('[name=product_code]').val(item.data('code'));
+            $('[name=sale_price]').val(item.data('sale'));
+            $('.product-amount').text(item.data('residual'));
         },
         renderItem: function (product, search){
             search = search.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
             let re = new RegExp("(" + search.split(' ').join('|') + ")", "gi");
 
-            return '<div class="autocomplete-suggestion" data-code="'+product.code+'" data-name="'+product.name+'" data-val="'+search+'">'
+            return '<div class="autocomplete-suggestion" data-code="'+product.code+'" data-residual="'+(product.residual || 0 )+'" data-sale="' + product.sale_price+'">'
                 + product.code.replace(re, "<b>$1</b>") + ', ' + product.name.replace(re, "<b>$1</b>")
                 + '</div>';
         }
@@ -87,7 +74,7 @@
         e.preventDefault();
 
         let data = {
-            type: 'income'
+            type: 'outcome'
         };
 
         $(this).find('.form-control').each(function(){
@@ -100,8 +87,8 @@
             }
         });
 
-        if (data.amount < 0 || data.purchase_price < 0 || data.purchase_price_usd < 0) {
-          alert('Кількість і ціни мають містити невідємні значення');
+        if (data.amount < 0 || data.sale_price < 0) {
+          alert('Кількість і ціна мають містити невідємні значення');
           return;
         }
 
