@@ -1,5 +1,6 @@
 {
   "name": "commodity-circulation",
+  "productName": "Облік товару",
   "author": "Oleh Kurpia",
   "description": "commodity circulation",
   "version": "0.1.0",
