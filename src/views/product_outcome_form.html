@@ -15,6 +15,11 @@
 <body class="container" style="padding-top: 20px; padding-bottom: 20px;">
 <form id="income_product_form">
     <div class="form-group">
+        <label>Залишок на складі залишилось:</label>
+        <span class="product-amount"></span>
+    </div>
+
+    <div class="form-group">
         <label>Код</label>
         <input name="product_code" class="form-control" required>
     </div>
@@ -44,7 +49,7 @@
     $('[data-type=number]').inputmask('decimal', { rightAlign: false });
 
     $('[name=product_code]').unbind().autoComplete({
-        minChars: 2,
+        minChars: 1,
         source: function(term, suggest){
             database.get_products_match(term, function(products){
                 suggest(products);
@@ -53,12 +58,13 @@
         onSelect: function(e, term, item){
             $('[name=product_code]').val(item.data('code'));
             $('[name=sale_price]').val(item.data('sale'));
+            $('.product-amount').text(item.data('residual'));
         },
         renderItem: function (product, search){
             search = search.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
             let re = new RegExp("(" + search.split(' ').join('|') + ")", "gi");
 
-            return '<div class="autocomplete-suggestion" data-code="'+product.code+'" data-name="'+product.name+'" data-val="'+search+'" data-sale="' + product.sale_price+'">'
+            return '<div class="autocomplete-suggestion" data-code="'+product.code+'" data-residual="'+(product.residual || 0 )+'" data-sale="' + product.sale_price+'">'
                 + product.code.replace(re, "<b>$1</b>") + ', ' + product.name.replace(re, "<b>$1</b>")
                 + '</div>';
         }
@@ -81,10 +87,8 @@
             }
         });
 
-        console.log(data);
-
         if (data.amount < 0 || data.sale_price < 0) {
-          alert('Кількість і ціни мають містити невідємні значення');
+          alert('Кількість і ціна мають містити невідємні значення');
           return;
         }
 

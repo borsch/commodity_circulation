@@ -54,7 +54,7 @@
     $('[data-type=number]').inputmask('decimal', { rightAlign: false });
 
     $('[name=product_code]').unbind().autoComplete({
-        minChars: 2,
+        minChars: 1,
         source: function(term, suggest){
             database.get_products_match(term, function(products){
                 suggest(products);
@@ -104,8 +104,6 @@
           alert('Кількість і ціни мають містити невідємні значення');
           return;
         }
-
-        console.log(data);
 
         database.product_income(data, function (error, result) {
           if (error) {

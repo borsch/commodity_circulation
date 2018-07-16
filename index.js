@@ -2,6 +2,7 @@ const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 const url = require('url');
 const path = require('path');
 const database = require('./src/assets/js/database');
+const config = require('electron-node-config');
 
 let browser_window;
 let product_window;
@@ -25,18 +26,15 @@ app.on('activate', () => {
 });
 
 ipcMain.on('on_add_product', function(event, data) {
-    product_window.close();
-
     database.add_product(data, function(product){
         if (product) {
             product.residual = 0;
             product.purchase_price = 0;
-            product.markup = 0;
-
 
             browser_window.webContents.send('on_add_product_add_success', product);
+            product_window.close();
         } else {
-            browser_window.webContents.send('on_add_product_add_fail', null);
+            product_window.webContents.send('on_add_product_add_fail', null);
         }
     });
 });
@@ -54,7 +52,9 @@ function create_window() {
         slashes: true
     }));
 
-    browser_window.webContents.openDevTools();
+    if (config.get('dev_tools')) {
+        browser_window.webContents.openDevTools();
+    }
 
     browser_window.setMenu(create_menu());
 
@@ -123,7 +123,9 @@ function add_product_window() {
         slashes: true
     }));
 
-    product_window.webContents.openDevTools();
+    if (config.get('dev_tools')) {
+        product_window.webContents.openDevTools();
+    }
 
     product_window.on('closed', () => {
         product_window = null
@@ -147,7 +149,9 @@ function income_product_window_create() {
         slashes: true
     }));
 
-    income_product_window.webContents.openDevTools();
+    if (config.get('dev_tools')) {
+        income_product_window.webContents.openDevTools();
+    }
 
     income_product_window.on('closed', () => {
         income_product_window = null
@@ -170,7 +174,9 @@ function outcome_product_window_create() {
     slashes: true
   }));
 
-  outcome_product_window.webContents.openDevTools();
+  if (config.get('dev_tools')) {
+      outcome_product_window.webContents.openDevTools();
+  }
 
   outcome_product_window.on('closed', () => {
     outcome_product_window = null

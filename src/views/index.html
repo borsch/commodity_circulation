@@ -51,10 +51,6 @@
         render_product(p);
     });
 
-    ipcRenderer.on('on_add_product_add_fail', function(){
-        alert('Невдалось додати продукт. Спробуйте ще раз або перевірте зєднання з базою даних та перезапустіть додаток');
-    });
-
     ipcRenderer.on('on_menu_product_perspective', function(){
         products_perspective();
     });

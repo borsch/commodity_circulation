@@ -1,3 +1,4 @@
 {
-  "binary": false
+  "binary": false,
+  "dev_tools": true
 }

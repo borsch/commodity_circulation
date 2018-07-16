@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/commodity_circulation');
 
 const Product = mongoose.model('Product', {
-    code: String,
-    name: String,
+    code: { type: String, index: true },
+    name: { type: String, index: true },
     unit: String,
     residual: Number,
     purchase_price: Number,
@@ -13,12 +13,12 @@ const Product = mongoose.model('Product', {
 });
 
 const ProductHistory = mongoose.model('ProductHistory', {
-    product_code: String,
+    product_code: { type: String, index: true },
     amount: Number,
     purchase_price: Number,
     purchase_price_usd: Number,
     sale_price: Number,
-    date: Date,
+    date: { type: Date, index: true },
     type: String
 });
 
@@ -63,11 +63,20 @@ module.exports.get_products_match = function(query, cb) {
 };
 
 module.exports.product_income = function(income, cb) {
-    Product.find({code: income.product_code}, function(err, result){
-        if (err || !result || !result.length) {
+    module.exports.get_product_by_code(income.product_code, function(error, product){
+        if (error || !product) {
             cb('Немає товару з таким кодом');
         } else {
-            let product = result[0];
+            if (income.type === 'outcome') {
+                if (!product.residual) {
+                    product.residual = 0;
+                }
+
+                if ((product.residual - income.amount) < 0) {
+                    cb('На складі є лише ' + (product.residual || 0) + ' одиниць цього товару');
+                    return;
+                }
+            }
 
             update_product(
                 product, {
@@ -97,7 +106,7 @@ module.exports.product_income = function(income, cb) {
                 }
             );
         }
-    });
+    })
 };
 
 module.exports.get_products_history_period = function(from, till, cb) {
@@ -110,8 +119,11 @@ module.exports.get_products_history_period = function(from, till, cb) {
 
 
 function update_product(product, new_values, cb) {
+    console.log(product);
+    console.log(new_values);
+
     Product.findByIdAndUpdate(
-        product._id,
+        product.id,
         new_values || product,
         {
             new: true
