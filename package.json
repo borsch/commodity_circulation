@@ -7,7 +7,7 @@
   "main": "index.js",
   "scripts": {
     "run": "electron .",
-    "package-win": "electron-packager . app --overwrite --asar=true --platform=win32 --arch=ia32 --prune=true --out=builds --icon=src/assets/images/icon.ico"
+    "package-win": "electron-packager . commodity_circulation --overwrite --asar=true --platform=win32 --arch=ia32 --prune=true --out=builds --icon=src/assets/images/icon.ico"
   },
   "devDependencies": {
     "electron": "^1.7.8",
