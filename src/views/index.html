@@ -73,6 +73,26 @@
                     render_product(p);
                 });
             });
+
+            $html.find('#filter').keyup(function(){
+                let query = $(this).val().toLowerCase();
+                let $rows = $html.find('#products tr');
+
+                if (!query) {
+                    $rows.show();
+                    return;
+                }
+
+                $rows.hide().each(function(){
+                    let $self = $(this),
+                        name = $self.data('name').toLowerCase(),
+                        code = '' + $self.data('code');
+
+                    if (name.indexOf(query) > -1 || code.indexOf(query) > -1 ) {
+                        $self.show();
+                    }
+                });
+            });
         });
     }
 

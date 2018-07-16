@@ -152,7 +152,7 @@ function income_product_window_create() {
         width: 600,
         height: 700,
         devTools: true,
-        title: 'Додати товар'
+        title: 'Прихід товару'
     });
 
     income_product_window.loadURL(url.format ({
@@ -178,7 +178,7 @@ function import_products_window_create() {
         width: 600,
         height: 700,
         devTools: true,
-        title: 'Імпорт товарів'
+        title: 'Розхід товару'
     });
 
     import_products_window.loadURL(url.format ({
