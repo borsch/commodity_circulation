@@ -1,0 +1,14 @@
+<tr class="<%= history.type %>">
+	<td><%= history.date.format('dd/MM/yyyy') %></td>
+	<td><%= history.type === 'outcome' ? '-' : '' %><%= history.amount %></td>
+	<td>
+		<% if (history.type === 'outcome') { %>
+			<%= history.sale_price %>грн.
+		<% } else { %>
+			<%= history.purchase_price || 0 %>грн.
+			<br />
+			<%= history.purchase_price_usd || 0 %>дол.
+		<% } %>
+	</td>
+	<td><pre><%= history.description || '' %></pre></td>
+</tr>
