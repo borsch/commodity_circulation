@@ -19,7 +19,8 @@ const ProductHistory = mongoose.model('ProductHistory', {
     purchase_price_usd: Number,
     sale_price: Number,
     date: { type: Date, index: true },
-    type: String
+    type: String,
+    description: String
 });
 
 module.exports.add_product = function(product_obj, cb){
@@ -120,9 +121,21 @@ module.exports.product_income = function(income, cb) {
     })
 };
 
-module.exports.get_products_history_period = function(from, till, cb) {
+module.exports.get_products_history_period = function(query, cb) {
+    let criteria = { },
+        sort = query.sort || { };
+
+    if (query.from && query.till) {
+        criteria.date = {'$gte': query.from, '$lte': query.till};
+    }
+
+    if (query.product_code) {
+        criteria.product_code = {'$eq': query.product_code}
+    }
+
     ProductHistory
-        .find({date: {'$gte': from, '$lte': till}})
+        .find(criteria)
+        .sort(sort)
         .exec(function(error, result) {
             cb(error, result);
         });

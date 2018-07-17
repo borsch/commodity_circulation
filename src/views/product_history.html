@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery.inputmask.bundle.min.js"></script>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+    <script>if (window.module) module = window.module;</script>
+
+    <style>
+        .income {
+            background: #00b740;
+        }
+
+        .outcome {
+            background: #b64669;
+        }
+    </style>
+</head>
+<body class="container" style="padding-top: 20px; padding-bottom: 20px;">
+<table class="table" style="width: 100%;">
+    <thead>
+    <tr>
+        <th>Дата</th>
+        <th>Кількість</th>
+        <th>Ціна</th>
+        <th>Коментар</th>
+    </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+</table>
+<script src="../assets/js/utils/date.format.js"></script>
+<script>
+    const { ipcRenderer } = require('electron');
+    const database = require('../assets/js/database');
+    const config = require('electron-node-config');
+    const ejs = require('ejs');
+
+    ipcRenderer.on('load_history', function(event, data){
+        database.get_products_history_period({from: data.start_date, till: data.end_date, product_code: data.code, sort: {date: 1}}, function(error, result){
+            if (result && result.length) {
+                result.forEach(function(history){
+                    load_template('src/views/template/product_history_row.ejs', {history: history}, function($html){
+                        $('tbody').append($html);
+                    });
+                })
+            } else {
+                alert('Нічого не знайдено');
+            }
+        });
+    });
+
+    function load_template(path, data, callback) {
+        if (config.get('binary')) {
+            path = 'resources/app.asar/' + path;
+        }
+
+        ejs.renderFile(path, data, {}, (error, html) => {
+            if (error) {
+                throw new Error(error);
+            } else {
+                callback($(html));
+            }
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
-<tr data-name="<%= product.name %>" data-code="<%= product.code %>">
-    <td><%= product.code %></td>
-    <td><%= product.name %></td>
+<tr data-name="<%= product.name %>" data-code="<%= product.code %>" style="cursor: pointer;">
+    <td class="code"><%= product.code %></td>
+    <td class="name"><%= product.name %></td>
     <td><%= product.unit %></td>
     <td><%= product.residual.toFixed(2) %></td>
     <td><%= product.purchase_price.toFixed(2) %></td>

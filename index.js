@@ -9,6 +9,7 @@ let product_window;
 let income_product_window;
 let outcome_product_window;
 let import_products_window;
+let product_history_window;
 
 app.on('ready', () => {
     create_window();
@@ -38,6 +39,15 @@ ipcMain.on('on_add_product', function(event, data) {
             product_window.webContents.send('on_add_product_add_fail', null);
         }
     });
+});
+
+ipcMain.on('product_history_load', function(event, data){
+    if (!product_history_window)
+        product_history_window_create();
+
+    setTimeout(function(){
+        product_history_window.webContents.send('load_history', data);
+    }, 500);
 });
 
 function create_window() {
@@ -222,4 +232,29 @@ function outcome_product_window_create() {
 
   outcome_product_window.show();
   outcome_product_window.setMenu(Menu.buildFromTemplate([]));
+}
+
+function product_history_window_create() {
+    product_history_window = new BrowserWindow({
+        width: 600,
+        height: 700,
+        devTools: true
+    });
+
+    product_history_window.loadURL(url.format ({
+        pathname: path.join(__dirname, `src/views/product_history.html`),
+        protocol: 'file:',
+        slashes: true
+    }));
+
+    if (config.get('dev_tools')) {
+        product_history_window.webContents.openDevTools();
+    }
+
+    product_history_window.on('closed', () => {
+        product_history_window = null
+    });
+
+    product_history_window.show();
+    product_history_window.setMenu(Menu.buildFromTemplate([]));
 }

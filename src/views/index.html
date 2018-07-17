@@ -139,7 +139,7 @@
                 let $income_container = $html.find('#income_list');
                 $income_container.empty();
 
-                database.get_products_history_period(start, end, function(error, result){
+                database.get_products_history_period({from: start, till: end}, function(error, result){
                     if (result && result.length) {
                         result = lodash.groupBy(result, a => a.product_code);
 
@@ -189,6 +189,14 @@
 
                             result_table = $(result_table + outcome_row);
 
+                            result_table.find('.product-name').click(function(){
+                                ipcRenderer.send('product_history_load', {
+                                    code: product_code,
+                                    start_date: start,
+                                    end_date: end
+                                });
+                            });
+
                             database.get_product_by_code(product_code, function(error, result){
                                 if (result) {
                                     result_table.find('.product-name').text(result.code + ', ' + result.name);
@@ -223,6 +231,12 @@
     function render_product(product) {
         load_template('src/views/template/product_row.ejs', { product: product }, function($html){
             $('#products').append($html);
+
+            $html.find('.code, .name').click(function(){
+                ipcRenderer.send('product_history_load', {
+                    code: product.code
+                });
+            });
         });
     }
 
