@@ -40,6 +40,8 @@
     const ejs = require('ejs');
 
     ipcRenderer.on('load_history', function(event, data){
+        $('tbody').empty();
+
         database.get_products_history_period({from: data.start_date, till: data.end_date, product_code: data.code, sort: {date: 1}}, function(error, result){
             if (result && result.length) {
                 result.forEach(function(history){
