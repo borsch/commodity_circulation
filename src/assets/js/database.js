@@ -140,8 +140,8 @@ module.exports.add_product_outcome_batch = function(outcomes, cb) {
                 outcomes.forEach(function (outcome) {
                     result.forEach(function(product){
                         if (product.code === outcome.product_code) {
-                            if (product.residual - outcome.amount < 0) {
-                                not_available_errors.push('Товару (' + product.name + ') доступно лише ' + product.residual + ' ' + product.unit);
+                            if ((product.residual || 0) - outcome.amount < 0) {
+                                not_available_errors.push('Товару (' + product.name + ') доступно лише ' + (product.residual || 0) + ' ' + product.unit);
                             }
                         }
                     });
@@ -156,7 +156,7 @@ module.exports.add_product_outcome_batch = function(outcomes, cb) {
                     result.forEach(function(product){
                         if (product.code === outcome.product_code) {
                             let updated_product = {
-                                residual: outcome.amount - (product.residual || 0),
+                                residual: (product.residual || 0) - outcome.amount,
                                 sale_price: parseFloat(outcome.sale_price)
                             };
 

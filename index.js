@@ -211,7 +211,7 @@ function import_products_window_create() {
 
 function outcome_product_window_create() {
   outcome_product_window = new BrowserWindow({
-    width: 900,
+    width: 1100,
     height: 700,
     devTools: true
   });

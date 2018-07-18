@@ -72,6 +72,12 @@
 
                     render_product(p);
                 });
+
+                $html.find('table').DataTable({
+                    paging: false,
+                    searching: false,
+                    fixedHeader: true
+                });
             });
 
             $html.find('#filter').keyup(function(){
