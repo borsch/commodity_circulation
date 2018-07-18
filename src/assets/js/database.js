@@ -121,6 +121,64 @@ module.exports.product_income = function(income, cb) {
     })
 };
 
+/**
+ *
+ * @param outcomes {Array}
+ * @param cb {Function}
+ */
+module.exports.add_product_outcome_batch = function(outcomes, cb) {
+    let product_codes = outcomes.map(function(item){
+        return item.product_code;
+    });
+
+    Product
+        .find({code: {$in: product_codes}})
+        .exec(function(error, result) {
+            if (result) {
+                let not_available_errors = [];
+
+                outcomes.forEach(function (outcome) {
+                    result.forEach(function(product){
+                        if (product.code === outcome.product_code) {
+                            if (product.residual - outcome.amount < 0) {
+                                not_available_errors.push('Товару (' + product.name + ') доступно лише ' + product.residual + ' ' + product.unit);
+                            }
+                        }
+                    });
+                });
+
+                if (not_available_errors.length > 0) {
+                    cb && cb(not_available_errors.join(', '));
+                    return;
+                }
+
+                outcomes.forEach(function(outcome){
+                    result.forEach(function(product){
+                        if (product.code === outcome.product_code) {
+                            let updated_product = {
+                                residual: outcome.amount - (product.residual || 0),
+                                sale_price: parseFloat(outcome.sale_price)
+                            };
+
+                            update_product(
+                                product, updated_product,
+                                function () {
+                                    let product_history_obj = new ProductHistory(outcome);
+
+                                    product_history_obj.save();
+                                }
+                            );
+                        }
+                    });
+                });
+
+                cb && cb(null, true);
+            } else {
+                cb && cb('Невдалось знайти таких товарів');
+            }
+        });
+};
+
 module.exports.get_products_history_period = function(query, cb) {
     let criteria = { },
         sort = query.sort || { };
