@@ -10,6 +10,8 @@
 </head>
 <body class="container" style="padding-top: 20px; padding-bottom: 20px;">
 <form id="product_form">
+    <input type="hidden" class="form-control" name="id">
+
     <div class="form-group">
         <label>Код</label>
         <input name="code" data-type="number" class="form-control" required>
@@ -33,6 +35,26 @@
         </select>
     </div>
 
+    <div class="form-group">
+        <label>Кількість на складі</label>
+        <input name="residual" data-type="number" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label>Ціна закупки за одиницю, грн.</label>
+        <input name="purchase_price" data-type="number" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label>Ціна закупки за одиницю, дол.</label>
+        <input name="purchase_price_usd" data-type="number" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label>Ціна продажу за одиницю, грн.</label>
+        <input name="sale_price" data-type="number" class="form-control" required>
+    </div>
+
     <div class="text-center">
         <button type="submit" class="btn btn-success">Додати</button>
     </div>
@@ -43,6 +65,22 @@
 
     ipcRenderer.on('on_add_product_add_fail', function(){
         alert('Невдалось додати продукт. Спробуйте ще раз або перевірте зєднання з базою даних та перезапустіть додаток');
+    });
+
+    ipcRenderer.on('load_product', function(event, code){
+        if (code) {
+            database.get_product_by_code(code + '', function(error, product){
+                if (product) {
+                    ['id', 'name', 'code', 'unit', 'residual', 'purchase_price', 'purchase_price_usd', 'sale_price'].forEach(function(key){
+                        $('[name=' + key + ']').val(product[key]);
+                    });
+
+                    $('[type=submit]').text('Зберегти');
+                } else {
+                    alert('Невдалось загрузити товар');
+                }
+            });
+        }
     });
 
     $('[data-type=number]').inputmask('decimal', { rightAlign: false });
@@ -62,12 +100,19 @@
             }
         });
 
+        if (!data.id) {
+            delete data.id;
+        }
+
         database.get_product_by_code(data.code + '', function(error, product){
             if (product) {
-                alert('Товар з таким кодом вже існує');
-            } else {
-                ipcRenderer.sendSync('on_add_product', data);
+                if (data.id !== product.id) {
+                    alert('Товар з таким кодом вже існує');
+                    return;
+                }
             }
+
+            ipcRenderer.sendSync('on_add_product', data);
         });
     });
 </script>

@@ -24,15 +24,21 @@ const ProductHistory = mongoose.model('ProductHistory', {
 });
 
 module.exports.add_product = function(product_obj, cb){
-    let product = new Product(product_obj);
+    if (product_obj.id) {
+        update_product(product_obj, null, function(error, result){
+            cb && cb(result ? product_obj : null);
+        });
+    } else {
+        let product = new Product(product_obj);
 
-    product.save(function(error, product){
-        if (error) {
-            cb && cb(null);
-        } else {
-            cb && cb(product.toObject());
-        }
-    });
+        product.save(function (error, product) {
+            if (error) {
+                cb && cb(null);
+            } else {
+                cb && cb(product.toObject());
+            }
+        });
+    }
 };
 
 module.exports.get_all_products = function(cb) {

@@ -43,6 +43,17 @@
     products_perspective();
 
     ipcRenderer.on('on_add_product_add_success', function(event, p){
+        if (p.old) {
+            $('[data-product-id=' + p.id + ']').remove();
+        }
+
+        if (p.old) {
+            alert('Інформація про товар обновлена');
+        } else {
+            alert('Товар додано');
+        }
+
+
         p.residual = p.residual || 0;
         p.purchase_price = p.purchase_price || 0;
         p.purchase_price_usd = p.purchase_price_usd || 0;
@@ -236,12 +247,10 @@
 
     function render_product(product) {
         load_template('src/views/template/product_row.ejs', { product: product }, function($html){
-            $('#products').append($html);
+            $('#products').prepend($html);
 
             $html.find('.code, .name').click(function(){
-                ipcRenderer.send('product_history_load', {
-                    code: product.code
-                });
+                ipcRenderer.send('product_edit', product.code);
             });
         });
     }
