@@ -167,6 +167,8 @@
                             let result_table = '<tr><td class="product-name" rowspan="2"></td><td class="product-residual" rowspan="2"></td>';
                             let outcome_row = '<tr>';
 
+                            const DEFAULT_TABLE_CELLS = '<td></td><td></td>';
+
                             let total_sum_income = 0,
                                 total_amount_income = 0,
                                 total_sum_outcome = 0,
@@ -198,8 +200,19 @@
                                     }
                                 });
 
-                                result_table += '<td>' + (amount_in || '') + '</td><td>' + (purchase_price_in || '') + '</td>';
-                                outcome_row += '<td>' + (amount_out ? ('-' + amount_out) : '') + '</td><td>' + (sale_price_out || '') + '</td>';
+                                let date_formatted = date.format('MM/yyyy');
+
+                                if (amount_in) {
+                                    result_table += '<td data-date="' + date_formatted + '">' + amount_in + '</td><td data-date="' + date_formatted + '">' + purchase_price_in + '</td>';
+                                } else {
+                                    result_table += DEFAULT_TABLE_CELLS;
+                                }
+
+                                if (amount_out) {
+                                    outcome_row += '<td data-date="' + date_formatted + '">' + '-' + amount_out + '</td><td data-date="' + date_formatted + '">' + sale_price_out + '</td>';
+                                } else {
+                                    outcome_row += DEFAULT_TABLE_CELLS
+                                }
                             });
                             result_table += '<td>' + total_amount_income + '</td><td>' + total_sum_income + '</td></tr>';
                             outcome_row += '<td>' + total_amount_outcome + '</td><td>' + total_sum_outcome + '</td></tr>';
@@ -214,10 +227,23 @@
                                 });
                             });
 
+                            result_table.find('[data-date]').click(function(){
+                                let date_text = $(this).data('date'),
+                                    parts = date_text.split('/'),
+                                    year = parseInt(parts[1]),
+                                    month = parseInt(parts[0]);
+
+                                ipcRenderer.send('product_history_load', {
+                                    code: product_code,
+                                    start_date: new Date(year, month - 1, 1),
+                                    end_date: new Date(year, month, 0)
+                                });
+                            });
+
                             database.get_product_by_code(product_code, function(error, result){
                                 if (result) {
                                     result_table.find('.product-name').text(result.code + ', ' + result.name);
-                                    result_table.find('.product-residual').text(result.residual);
+                                    result_table.find('.product-residual').text((result.residual || 0).toFixed(2));
                                 }
                             });
 

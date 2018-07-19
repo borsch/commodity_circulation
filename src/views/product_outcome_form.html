@@ -72,8 +72,6 @@
         $('#total').text(total + '');
     });
 
-    $('[data-type=number]').inputmask('decimal', { rightAlign: false });
-
     $('#add_product').click(function(){
         load_template('src/views/template/outcome/row.ejs', {}, function($html){
             $html.find('[name=code]').unbind().autoComplete({
@@ -101,8 +99,10 @@
                     } else {
                         $html.find('[name=code]').val(code);
                         $html.find('[name=sale_price]').val(item.data('sale')).trigger('keyup');
-                        $html.find('.product-available-amount').text(item.data('residual') + item.data('unit'));
+                        $html.find('.product-available-amount').text((item.data('residual') || 0).toFixed(2) + item.data('unit'));
                         $html.find('.product-name').text(item.data('name'));
+
+                        $('[data-type=number]').inputmask('decimal', { rightAlign: false });
                     }
                 },
                 renderItem: function (product, search){
