@@ -12,99 +12,162 @@
     <script>if (window.module) module = window.module;</script>
     <title>Розхід</title>
 </head>
-<body class="container" style="padding-top: 20px; padding-bottom: 20px;">
+<body style="padding-top: 20px; padding-bottom: 20px;">
 <form id="income_product_form">
-    <div class="form-group">
-        <label>Залишок на складі залишилось:</label>
-        <span class="product-amount"></span>
+    <div class="col-12 text-center" id="result" style="margin-top: 10px; margin-bottom: 10px; display: none;">
+        <h2>Збережено</h2>
+    </div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Код, назва</th>
+            <th>Є на складі / Кількість</th>
+            <th>Ціна за одиницю, грн.</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody id="products">
+        </tbody>
+    </table>
+
+    <div class="form-group text-right" style="padding-right: 100px">
+        <label>Загальна сума:&nbsp;</label><strong><span id="total">0</span>грн.</strong>
     </div>
 
-    <div class="form-group">
-        <label>Код</label>
-        <input name="product_code" class="form-control" required>
+    <div class="form-group text-center">
+        <button type="button" id="add_product" class="btn btn-info">Додати ще один продукт</button>
     </div>
 
-    <div class="form-group">
-        <label>Кількість</label>
-        <input name="amount" data-type="number" class="form-control" required>
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Дата розходу</label>
+            <input name="date" type="date" class="form-control" required>
+        </div>
+
+        <div class="form-group col-6">
+            <label>Коментар</label>
+            <textarea name="description" class="form-control"></textarea>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label>Ціна продажу за одиницю, грн.</label>
-        <input name="sale_price" data-type="number" class="form-control" required>
-    </div>
-
-    <div class="form-group">
-        <label>Дата розходу</label>
-        <input name="date" type="date" class="form-control" required>
-    </div>
-
-    <div class="form-group">
-        <label>Коментар</label>
-        <textarea name="description" class="form-control"></textarea>
-    </div>
-
-    <div class="text-center">
-        <button type="submit" class="btn btn-success">Додати</button>
+    <div class="form-group text-center">
+        <button type="submit" class="btn btn-success">Зберегти</button>
     </div>
 </form>
 <script>
     const database = require('../assets/js/database');
+    const ejs = require('ejs');
+    const config = require('electron-node-config');
 
-    $('[data-type=number]').inputmask('decimal', { rightAlign: false });
+    $('body').on('keyup', '[name=amount], [name=sale_price]', function(){
+        let total = 0,
+            $products = $('#products tr');
 
-    $('[name=product_code]').unbind().autoComplete({
-        minChars: 1,
-        source: function(term, suggest){
-            database.get_products_match(term, function(products){
-                suggest(products);
+        $products.each(function(){
+            let $row = $(this);
+
+            total += (parseFloat($row.find('[name=amount]').val()) * parseFloat($row.find('[name=sale_price]').val())) || 0;
+        });
+
+        $('#total').text(total + '');
+    });
+
+    $('#add_product').click(function(){
+        load_template('src/views/template/outcome/row.ejs', {}, function($html){
+            $html.find('[name=code]').unbind().autoComplete({
+                minChars: 1,
+                source: function(term, suggest){
+                    database.get_products_match(term, function(products){
+                        suggest(products);
+                    });
+                },
+                onSelect: function(e, term, item){
+                    let code = item.data('code'),
+                        contains = false;
+
+                    $('[name=code]').each(function(){
+                        if ($(this).val() === code.toString()) {
+                            contains = true;
+                        }
+                    });
+
+                    if (contains) {
+                        $html.find('[name=code], [name=sale_price]').val('');
+                        $html.find('.product-available-amount, .product-name').text('');
+
+                        alert('Цей товар вже додано до чеку');
+                    } else {
+                        $html.find('[name=code]').val(code);
+                        $html.find('[name=sale_price]').val(item.data('sale')).trigger('keyup');
+                        $html.find('.product-available-amount').text((item.data('residual') || 0).toFixed(2) + item.data('unit'));
+                        $html.find('.product-name').text(item.data('name'));
+
+                        $('[data-type=number]').inputmask('decimal', { rightAlign: false });
+                    }
+                },
+                renderItem: function (product, search){
+                    search = search.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                    let re = new RegExp("(" + search.split(' ').join('|') + ")", "gi");
+
+                    return '<div class="autocomplete-suggestion" title="' + product.name + '" data-code="'+product.code+'" data-unit="' + product.unit + '" data-residual="'+(product.residual || 0 )+'" data-name="' + product.name+'" data-sale="' + product.sale_price+'">'
+                        + product.code.replace(re, "<b>$1</b>") + ', ' + product.name.replace(re, "<b>$1</b>")
+                        + '</div>';
+                }
             });
-        },
-        onSelect: function(e, term, item){
-            $('[name=product_code]').val(item.data('code'));
-            $('[name=sale_price]').val(item.data('sale'));
-            $('.product-amount').text(item.data('residual'));
-        },
-        renderItem: function (product, search){
-            search = search.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-            let re = new RegExp("(" + search.split(' ').join('|') + ")", "gi");
 
-            return '<div class="autocomplete-suggestion" data-code="'+product.code+'" data-residual="'+(product.residual || 0 )+'" data-sale="' + product.sale_price+'">'
-                + product.code.replace(re, "<b>$1</b>") + ', ' + product.name.replace(re, "<b>$1</b>")
-                + '</div>';
-        }
+            $('#products').append($html);
+        });
     });
 
     $('#income_product_form').submit(function(e){
         e.preventDefault();
 
-        let data = {
-            type: 'outcome'
-        };
+        let date = $('[name=date]').val(),
+            comment = $('[name=description]').val(),
+            data = [],
+            $products = $('#products tr');
 
-        $(this).find('.form-control').each(function(){
-            let $input = $(this);
-
-            if ($input.data('type') === 'number') {
-                data[$input.attr('name')] = parseFloat(parseFloat($input.val()).toFixed(2));
-            } else {
-                data[$input.attr('name')] = $input.val();
-            }
-        });
-
-        if (data.amount < 0 || data.sale_price < 0) {
-          alert('Кількість і ціна мають містити невідємні значення');
-          return;
+        if ($products.length === 0) {
+            alert('Виберіть хоча б один товар');
+            return;
         }
 
-        database.product_income(data, function (error, result) {
-          if (error) {
-            alert(error);
-          } else {
-            alert('Додано');
-          }
+        $products.each(function(){
+            let $row = $(this);
+
+            data.push({
+                type: 'outcome',
+                date: date,
+                description: comment,
+                product_code: $row.find('[name=code]').val(),
+                amount: $row.find('[name=amount]').val(),
+                sale_price: $row.find('[name=sale_price]').val()
+            });
+        });
+
+        database.add_product_outcome_batch(data, function(error){
+            if (error) {
+                alert(error);
+            } else {
+                $('#result').show();
+                $('button').remove();
+            }
         });
     });
+
+    function load_template(path, data, callback) {
+        if (config.get('binary')) {
+            path = 'resources/app.asar/' + path;
+        }
+
+        ejs.renderFile(path, data, {}, (error, html) => {
+            if (error) {
+                throw new Error(error);
+            } else {
+                callback($(html));
+            }
+        });
+    }
 </script>
 </body>
 </html>

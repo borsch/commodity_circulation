@@ -24,15 +24,21 @@ const ProductHistory = mongoose.model('ProductHistory', {
 });
 
 module.exports.add_product = function(product_obj, cb){
-    let product = new Product(product_obj);
+    if (product_obj.id) {
+        update_product(product_obj, null, function(error, result){
+            cb && cb(result ? product_obj : null);
+        });
+    } else {
+        let product = new Product(product_obj);
 
-    product.save(function(error, product){
-        if (error) {
-            cb && cb(null);
-        } else {
-            cb && cb(product.toObject());
-        }
-    });
+        product.save(function (error, product) {
+            if (error) {
+                cb && cb(null);
+            } else {
+                cb && cb(product.toObject());
+            }
+        });
+    }
 };
 
 module.exports.get_all_products = function(cb) {
@@ -119,6 +125,64 @@ module.exports.product_income = function(income, cb) {
             );
         }
     })
+};
+
+/**
+ *
+ * @param outcomes {Array}
+ * @param cb {Function}
+ */
+module.exports.add_product_outcome_batch = function(outcomes, cb) {
+    let product_codes = outcomes.map(function(item){
+        return item.product_code;
+    });
+
+    Product
+        .find({code: {$in: product_codes}})
+        .exec(function(error, result) {
+            if (result) {
+                let not_available_errors = [];
+
+                outcomes.forEach(function (outcome) {
+                    result.forEach(function(product){
+                        if (product.code === outcome.product_code) {
+                            if ((product.residual || 0) - outcome.amount < 0) {
+                                not_available_errors.push('Товару (' + product.name + ') доступно лише ' + (product.residual || 0) + ' ' + product.unit);
+                            }
+                        }
+                    });
+                });
+
+                if (not_available_errors.length > 0) {
+                    cb && cb(not_available_errors.join(', '));
+                    return;
+                }
+
+                outcomes.forEach(function(outcome){
+                    result.forEach(function(product){
+                        if (product.code === outcome.product_code) {
+                            let updated_product = {
+                                residual: (product.residual || 0) - outcome.amount,
+                                sale_price: parseFloat(outcome.sale_price)
+                            };
+
+                            update_product(
+                                product, updated_product,
+                                function () {
+                                    let product_history_obj = new ProductHistory(outcome);
+
+                                    product_history_obj.save();
+                                }
+                            );
+                        }
+                    });
+                });
+
+                cb && cb(null, true);
+            } else {
+                cb && cb('Невдалось знайти таких товарів');
+            }
+        });
 };
 
 module.exports.get_products_history_period = function(query, cb) {

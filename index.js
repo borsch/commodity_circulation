@@ -30,8 +30,7 @@ app.on('activate', () => {
 ipcMain.on('on_add_product', function(event, data) {
     database.add_product(data, function(product){
         if (product) {
-            product.residual = 0;
-            product.purchase_price = 0;
+            product.old = !!data.id;
 
             browser_window.webContents.send('on_add_product_add_success', product);
             product_window.close();
@@ -48,6 +47,15 @@ ipcMain.on('product_history_load', function(event, data){
     setTimeout(function(){
         product_history_window.webContents.send('load_history', data);
     }, 500);
+});
+
+ipcMain.on('product_edit', function(event, data){
+    if (!product_window)
+        add_product_window();
+
+    setTimeout(function(){
+        product_window.webContents.send('load_product', data);
+    }, 1000);
 });
 
 function create_window() {
@@ -211,7 +219,7 @@ function import_products_window_create() {
 
 function outcome_product_window_create() {
   outcome_product_window = new BrowserWindow({
-    width: 600,
+    width: 1100,
     height: 700,
     devTools: true
   });
